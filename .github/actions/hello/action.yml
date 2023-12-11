@@ -1,10 +1,10 @@
 name: 'Hello World'
 description: 'Greet the caller'
-  inputs:
-    the-caller:
-      description: 'Who is there'
-      required: true
-      default: 'World'
+inputs:
+  the-caller:
+    description: 'Who is there'
+    required: true
+    default: 'World'
 outputs:
   random-number:
     description: "Random number"
