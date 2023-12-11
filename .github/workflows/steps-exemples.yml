@@ -1,0 +1,13 @@
+name: steps examples
+on:
+  push
+jobs:
+  node-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 14
+      - name: verification of node version
+        run: node --version
