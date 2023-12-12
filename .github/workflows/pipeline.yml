@@ -3,6 +3,7 @@ name: conchayoro-pipeline
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,26 +12,22 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-
     - name: Setup Node.js
       uses: actions/setup-node@v3
       with:
         node-version: '18'
         cache: 'npm'
-
     - name: Install frontend dependencies
       run: npm --prefix my-next-app install
-
     - name: Build frontend
       run: npm --prefix my-next-app run build
-
     - name: Upload frontend build
       uses: actions/upload-artifact@v3
       with:
         name: build
         path: my-next-app/.next/server/app
 
-  deploy:
+  homologation:
     runs-on: ubuntu-latest
     needs: build
     env:
@@ -38,7 +35,27 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
       AWS_EC2_METADATA_DISABLED: true
-      BUCKET_S3: ${{ vars.BUCKET_S3 }}
+
+    steps:
+    - name: Download frontend build artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: build
+        path: my-next-app/.next/server/app
+    - name: Deploy to Homologation
+      run: aws s3 cp my-next-app/.next/server/app s3://homologation-bucket --recursive --acl public-read
+
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: homologation
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      AWS_EC2_METADATA_DISABLED: true
+    
+   
 
     steps:
     - name: Download frontend build artifact
@@ -48,4 +65,6 @@ jobs:
         path: my-next-app/.next/server/app
 
     - name: Deploy to S3
-      run: aws s3 cp my-next-app/.next/server/app s3://$BUCKET_S3 --recursive --acl public-read
+      if: github.event_name == 'workflow_dispatch' && contains(github.event.head_commit.message, 'DEPLOY PRODUCTION')
+      run: aws s3 cp my-next-app/.next/server/app s3://production-bucket --recursive --acl public-read
+
