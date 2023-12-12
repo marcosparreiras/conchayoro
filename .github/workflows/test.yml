@@ -1,0 +1,24 @@
+name: Seu Fluxo de Trabalho
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  seu-job:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "hello world"
+
+  manual-deploy:
+    runs-on: ubuntu-latest
+    needs: seu-job
+    steps:
+      - name: Manual Approval
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const response = await github.actions.createOrUpdateApproval({owner: context.repo.owner, repo: context.repo.repo, pull_number: context.payload.pull_request.number});
+            console.log(response.data);
