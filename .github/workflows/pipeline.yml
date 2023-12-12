@@ -19,16 +19,16 @@ jobs:
         cache: 'npm'
 
     - name: Install frontend dependencies
-      run: npm --prefix frontend install
+      run: npm --prefix my-next-app install
 
     - name: Build frontend
-      run: npm --prefix frontend run build
+      run: npm --prefix my-next-app run build
 
     - name: Upload frontend build
       uses: actions/upload-artifact@v3
       with:
         name: build
-        path: frontend/.next/server/app
+        path: my-next-app/.next/server/app
 
   deploy:
     runs-on: ubuntu-latest
@@ -45,7 +45,7 @@ jobs:
       uses: actions/download-artifact@v3
       with:
         name: build
-        path: frontend/.next/server/app
+        path: my-next-app/.next/server/app
 
     - name: Deploy to S3
-      run: aws s3 cp frontend/.next/server/app s3://$BUCKET_S3 --recursive --acl public-read
+      run: aws s3 cp my-next-app/.next/server/app s3://$BUCKET_S3 --recursive --acl public-read
